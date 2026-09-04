@@ -23,28 +23,38 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "users")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
+@Builder
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     public String id;
 
     @Column(nullable = false)
+    @ToString.Include
+    @Setter(AccessLevel.PROTECTED)
     public String tenantId;
 
     @Column(nullable = false, length = 100)
+    @ToString.Include
     private String name;
 
     @Column(unique = true, nullable = false, length = 100)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private String email;
 
     @Column(nullable = false)
@@ -52,19 +62,23 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @ToString.Include
     private UserRole role;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean active = true;
 
     @CreationTimestamp
     @Column(updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
-    @Column(name = "last_login")
+    @Setter(AccessLevel.NONE)
     private String lastLogin;
 
     // Vários usuários podem ter relação com um laboratório

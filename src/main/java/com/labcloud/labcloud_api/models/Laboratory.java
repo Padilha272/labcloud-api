@@ -16,28 +16,37 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "laboratories")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class Laboratory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private String Id;
 
-    @Column(nullable = false, length = 100) // Nome precisa ser preenchido, tamanho máximo = 100 caracteres
-    private String name;
-
     @Column(unique = true, nullable = false, length = 50)
+    @ToString.Include
+    @Setter(AccessLevel.PROTECTED)
     private String tenantId;
 
+    @Column(nullable = false, length = 100) // Nome precisa ser preenchido, tamanho máximo = 100 caracteres
+    @ToString.Include
+    private String name;
+
     @Column(length = 255)
+    @ToString.Include
     private String description;
 
     @Column(length = 200)
@@ -50,22 +59,27 @@ public class Laboratory {
     private String email;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean active = true;
 
     @CreationTimestamp
     @Column(updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     // O laboratório pode ter vários usuários e realizar experimentos
 
     // Um laboratório para vários usuários
     @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<User> users = new ArrayList<>();
 
     @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<Experiment> experiments = new ArrayList<>();
 
 }

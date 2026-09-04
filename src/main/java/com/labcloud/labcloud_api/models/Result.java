@@ -14,31 +14,41 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "results")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
+@Builder
 public class Result {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private String id;
 
     @Column(nullable = false)
+    @Setter(AccessLevel.PROTECTED)
+    @ToString.Include
     private String tenantId;
 
     @Column(nullable = false, length = 100)
+    @ToString.Include
     private String parameter;
 
     @Column(nullable = false)
+    @ToString.Include
     private String value;
 
     @Column(length = 20)
+    @ToString.Include
     private String unit;
 
     private LocalDateTime measurementDate;
@@ -51,6 +61,7 @@ public class Result {
     @Column(columnDefinition = "TEXT")
     private String observations;
 
+    @Builder.Default
     private Boolean isValid = true;
 
     @Column(columnDefinition = "TEXT")
@@ -58,9 +69,11 @@ public class Result {
 
     @CreationTimestamp
     @Column(updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     // Uma amostra tem vários resultados -> Many to one

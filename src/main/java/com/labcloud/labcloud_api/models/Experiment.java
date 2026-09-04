@@ -22,25 +22,33 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "experiments")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 public class Experiment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(AccessLevel.NONE)
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private String id;
 
     @Column(nullable = false)
+    @Setter(AccessLevel.PROTECTED)
+    @ToString.Include
     public String tenantId;
 
     @Column(nullable = false, length = 100)
+    @ToString.Include
     public String name;
 
     @Column(columnDefinition = "TEXT")
@@ -48,6 +56,7 @@ public class Experiment {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @ToString.Include
     private ExperimentStatus status;
 
     private LocalDateTime startDate;
@@ -62,9 +71,11 @@ public class Experiment {
 
     @CreationTimestamp
     @Column(updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     // Muitos experimentos podem ocorrer em um laboratório -> Many to one
@@ -80,6 +91,22 @@ public class Experiment {
     private User createdBy;
 
     @OneToMany(mappedBy = "experiment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<Sample> samples = new ArrayList<>();
+
+    public void complete() {
+        this.status = ExperimentStatus.COMPLETED;
+        this.endDate = LocalDateTime.now();
+    }
+
+    public void cancel() {
+        this.status = ExperimentStatus.CANCELLED;
+        this.endDate = LocalDateTime.now();
+    }
+
+    public void activate() {
+        this.status = ExperimentStatus.ACTIVE;
+        this.startDate = LocalDateTime.now();
+    }
 
 }

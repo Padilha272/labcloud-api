@@ -41,7 +41,6 @@ public class ExperimentMapper {
                 .methodology(experiment.getMethodology())
                 .createdAt(experiment.getCreatedAt())
                 .updatedAt(experiment.getUpdatedAt())
-                .laboratoryId(experiment.getLaboratory() != null ? experiment.getLaboratory().getId() : null)
                 .laboratoryName(experiment.getLaboratory() != null ? experiment.getLaboratory().getName() : null)
                 .createdBy(experiment.getCreatedBy() != null ? experiment.getCreatedBy().getId() : null)
                 .createdByName(experiment.getCreatedBy() != null ? experiment.getCreatedBy().getName() : null)

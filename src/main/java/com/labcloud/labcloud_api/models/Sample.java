@@ -18,28 +18,38 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "samples")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
+@Builder
+
 public class Sample {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private String id;
 
     @Column(nullable = false)
+    @Setter(AccessLevel.PROTECTED)
+    @ToString.Include
     private String tenantId;
 
     @Column(nullable = false, length = 100)
+    @ToString.Include
     private String name;
 
     @Column(nullable = false, length = 50)
+    @ToString.Include
     private String type;
 
     private LocalDateTime collectionDate;
@@ -62,9 +72,12 @@ public class Sample {
     private String notes;
 
     @CreationTimestamp
+    @Column(updatable = false)
+    @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
     // Muitas amostras estão relacionadas a um experimento ->Many to one
@@ -80,6 +93,7 @@ public class Sample {
     private User createdBy;
 
     @OneToMany(mappedBy = "sample", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<Result> results = new ArrayList<>();
 
 }
