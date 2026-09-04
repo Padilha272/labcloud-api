@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: labcloud-api
+  
+  # Configuração do Banco de Dados
+  datasource:
+    url: jdbc:postgresql://localhost:5433/labcloud
+    username: postgres
+    password: 123456  # A senha que você definiu na instalação
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+  
+  # Configuração do JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        show_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+    show-sql: true
+    
+  # Configuração do JWT
+  security:
+    jwt:
+      secret: chave-secreta-jwt-para-desenvolvimento-1234567890
+      expiration: 86400000
+
+# Configuração do Servidor
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# Logging
+logging:
+  level:
+    com.labcloud: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
