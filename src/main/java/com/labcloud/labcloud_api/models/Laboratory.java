@@ -31,7 +31,7 @@ public class Laboratory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Include
     @ToString.Include
     private String Id;
