@@ -78,8 +78,9 @@ public class User implements UserDetails {
     @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
-    @Setter(AccessLevel.NONE)
-    private String lastLogin;
+    
+    @Setter(AccessLevel.PROTECTED)
+    private LocalDateTime lastLogin;
 
     // Vários usuários podem ter relação com um laboratório
     @ManyToOne(fetch = FetchType.LAZY)

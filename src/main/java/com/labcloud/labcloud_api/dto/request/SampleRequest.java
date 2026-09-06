@@ -29,7 +29,10 @@ public class SampleRequest {
     private String collectionMethod;
 
     @Positive(message = "A quantidade deve ser positiva")
-    private double quantity;
+    private Double quantity;
+
+    @Size(max = 20, message = "Unidade deve ter no máximo 20 caracteres")
+    private String unit;
 
     @Size(max = 255, message = "Condições de armazenamento devem ter no máximo 255 caracteres")
     private String storageConditions;

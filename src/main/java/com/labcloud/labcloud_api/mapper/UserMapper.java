@@ -2,7 +2,67 @@ package com.labcloud.labcloud_api.mapper;
 
 import org.springframework.stereotype.Component;
 
+import com.labcloud.labcloud_api.dto.request.UserRequest;
+import com.labcloud.labcloud_api.dto.response.UserResponse;
+
+import com.labcloud.labcloud_api.models.User;
+
 @Component
 public class UserMapper {
+
+    public User toEntity (UserRequest request){
+        if (request==null) 
+            return null;
+
+            User user = new User();
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword());
+            user.setRole(request.getRole());
+            
+            return user;
+    }
+
+    public UserResponse toResponse(User user){
+        if (user == null)
+            return null;
+        
+        return  UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .active(user.getActive())
+                .tenantId(user.getTenantId())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .lastLogin(user.getLastLogin())
+                .laboratoryId(user.getLaboratory() != null ? 
+                    user.getLaboratory().getId() : null)
+                .laboratoryName(user.getLaboratory() != null ? 
+                    user.getLaboratory().getName() : null)
+                .build();
+
+
+
+    }
+
+    public void updateEntity(UserRequest request, User user) {
+        if (request == null || user == null) return;
+
+        if (request.getName() != null) {
+            user.setName(request.getName());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(request.getPassword()); // Será criptografado no Service
+        }
+        
+    }
 
 }
