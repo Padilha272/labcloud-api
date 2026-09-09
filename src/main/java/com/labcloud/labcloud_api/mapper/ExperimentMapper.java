@@ -49,4 +49,17 @@ public class ExperimentMapper {
 
     }
 
+    public void updateEntity(ExperimentRequest request, Experiment experiment) {
+        if (request.getName() != null) {
+            experiment.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            experiment.setDescription(request.getDescription());
+        }
+        if (request.getStatus() != null) {
+            experiment.setStatus(request.getStatus());
+        }
+
+    }
+
 }

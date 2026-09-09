@@ -38,7 +38,7 @@ public class Laboratory {
 
     @Column(unique = true, nullable = false, length = 50)
     @ToString.Include
-    @Setter(AccessLevel.PROTECTED)
+    @Setter(AccessLevel.NONE)
     private String tenantId;
 
     @Column(nullable = false, length = 100) // Nome precisa ser preenchido, tamanho máximo = 100 caracteres
@@ -81,5 +81,16 @@ public class Laboratory {
     @OneToMany(mappedBy = "laboratory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Experiment> experiments = new ArrayList<>();
+
+    //Método para atualizar o tenentId
+    public void updateTenantId(String newTenantId) {
+        if (newTenantId == null || newTenantId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tenant ID não pode ser vazio");
+        }
+        if (!newTenantId.matches("^[a-zA-Z0-9-_]+$")) {
+            throw new IllegalArgumentException("Tenant ID contém caracteres inválidos");
+        }
+        this.tenantId = newTenantId;
+    }
 
 }

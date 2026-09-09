@@ -20,6 +20,10 @@ public interface SampleRepository extends JpaRepository<Sample, String> {
 
         List<Sample> findByTenantIdAndType(String tenantId, String Type);
 
+        List<Sample> findByExperimentId(String experimentId);
+
+        Page<Sample> findByExperimentId(String experimentId, Pageable pageable);
+
         List<Sample> findByTenantIdAndNameContainingIgnoreCase(String tenantId, String name);
 
         @Query("SELECT s FROM Sample s WHERE s.tenantId = :tenantId " +

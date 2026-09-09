@@ -94,6 +94,17 @@ public class Experiment {
     @Builder.Default
     private List<Sample> samples = new ArrayList<>();
 
+    // Método para atualizar o tenentId
+    public void updateTenantId(String newTenantId) {
+        if (newTenantId == null || newTenantId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tenant ID não pode ser vazio");
+        }
+        if (!newTenantId.matches("^[a-zA-Z0-9-_]+$")) {
+            throw new IllegalArgumentException("Tenant ID contém caracteres inválidos");
+        }
+        this.tenantId = newTenantId;
+    }
+
     public void complete() {
         this.status = ExperimentStatus.COMPLETED;
         this.endDate = LocalDateTime.now();

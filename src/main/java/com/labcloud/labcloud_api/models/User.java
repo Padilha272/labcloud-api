@@ -78,7 +78,6 @@ public class User implements UserDetails {
     @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;
 
-    
     @Setter(AccessLevel.PROTECTED)
     private LocalDateTime lastLogin;
 
@@ -86,6 +85,20 @@ public class User implements UserDetails {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "laboratory_id", nullable = false)
     private Laboratory laboratory;
+
+    public void updateTenantId(String newTenantId) {
+        if (newTenantId == null || newTenantId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tenant ID não pode ser vazio");
+        }
+        if (!newTenantId.matches("^[a-zA-Z0-9-_]+$")) {
+            throw new IllegalArgumentException("Tenant ID contém caracteres inválidos");
+        }
+        this.tenantId = newTenantId;
+    }
+
+    public void updateLastLogin() {
+        this.lastLogin = LocalDateTime.now();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

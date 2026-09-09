@@ -87,4 +87,14 @@ public class Result {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    // Método para atualizar o tenentId
+    public void updateTenantId(String newTenantId) {
+        if (newTenantId == null || newTenantId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tenant ID não pode ser vazio");
+        }
+        if (!newTenantId.matches("^[a-zA-Z0-9-_]+$")) {
+            throw new IllegalArgumentException("Tenant ID contém caracteres inválidos");
+        }
+        this.tenantId = newTenantId;
+    }
 }
