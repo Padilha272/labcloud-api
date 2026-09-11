@@ -1,15 +1,17 @@
 package com.labcloud.labcloud_api.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AuthResponse {
 
-    private String Token;
+    private String token;
     private String RefreshToken;
     private String userId;
     private String tenantId;

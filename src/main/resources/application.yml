@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/labcloud
     username: postgres
-    password: 123456  # A senha que você definiu na instalação
+    password: 123456
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -31,14 +31,12 @@ spring:
   # Configuração do JWT
   security:
     jwt:
-      secret: chave-secreta-jwt-para-desenvolvimento-1234567890
-      expiration: 86400000
+      secret: ${JWT_SECRET:chave-secreta-jwt-para-desenvolvimento-com-no-minimo-256-bits-para-funcionar-corretamente}
+      expiration: 86400000 # 24 horas em milissegundos
 
 # Configuração do Servidor
 server:
   port: 8080
-  servlet:
-    context-path: /api
 
 # Logging
 logging:
