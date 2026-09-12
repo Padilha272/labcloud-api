@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.labcloud.labcloud_api.dto.request.ExperimentRequest;
 import com.labcloud.labcloud_api.dto.response.ExperimentResponse;
 import com.labcloud.labcloud_api.enums.ExperimentStatus;
+import com.labcloud.labcloud_api.security.SecurityUtils;
 import com.labcloud.labcloud_api.services.ExperimentService;
 
 import jakarta.validation.Valid;
@@ -35,14 +36,13 @@ public class ExperimentController {
 
     private final ExperimentService experimentService;
 
-    private static final String CURRENT_USER_ID = "user-id-temporario";
-
     @PostMapping
     public ResponseEntity<ExperimentResponse> create(@Valid @RequestBody ExperimentRequest request) {
-        log.info("POST /api/experiments - Criando", request, CURRENT_USER_ID);
-        ExperimentResponse response = experimentService.create(request, CURRENT_USER_ID);
+        String currentUserId = SecurityUtils.getCurrentUserId();
+        log.info("POST /api/experiments - Criando experimento: {} para o usuário: {}", request.getName(), currentUserId);
+        
+        ExperimentResponse response = experimentService.create(request, currentUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
     }
 
     @GetMapping("/{id}")

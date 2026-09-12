@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.labcloud.labcloud_api.dto.response.LaboratoryResponse;
+import com.labcloud.labcloud_api.exception.DuplicateResourceException;
+import com.labcloud.labcloud_api.exception.ResourceNotFoundException;
 import com.labcloud.labcloud_api.dto.request.LaboratoryRequest;
 import com.labcloud.labcloud_api.mapper.LaboratoryMapper;
 import com.labcloud.labcloud_api.models.Laboratory;
@@ -32,7 +34,7 @@ public class LaboratoryService {
 
         // Verificar se tenantId já existe
         if (laboratoryRepository.existsByTenantId(tenantId)) {
-            throw new RuntimeException("Tenant ID já existe: " + tenantId);
+            throw new DuplicateResourceException("Laboratório", "tenantId", tenantId);
         }
 
         // Converter para entidade
@@ -54,7 +56,7 @@ public class LaboratoryService {
         log.info("Buscando pelo ID: {}", id);
 
         Laboratory laboratory = laboratoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Laboratório não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Laboratório", "ID", id));
 
         return laboratoryMapper.toResponse(laboratory);
     }
@@ -64,7 +66,8 @@ public class LaboratoryService {
         log.info("Buscando pelo TenantId: {}", tenantId);
 
         Laboratory laboratory = laboratoryRepository.findByTenantId(tenantId)
-                .orElseThrow(() -> new RuntimeException("LAboratório não encontrado com o tenant ID:" + tenantId));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Laboratório", "tenantId", tenantId));
         return laboratoryMapper.toResponse(laboratory);
 
     }
@@ -89,11 +92,11 @@ public class LaboratoryService {
 
     @Transactional(readOnly = true)
     public LaboratoryResponse update(String id, LaboratoryRequest request) {
-        log.info("Atualizando laboratórios: {}", id);
+        log.info("Atualizando laboratório: {}", id);
 
         // Buscar laboratório existente
         Laboratory laboratory = laboratoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Laboratório não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Laboratório", "ID", id));
 
         // Atualizar dados
         laboratoryMapper.updateEntity(request, laboratory);
@@ -112,7 +115,7 @@ public class LaboratoryService {
         log.info("Deletando laboratório: {}", id);
 
         Laboratory laboratory = laboratoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Laboratório não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Laboratório", "ID", id));
 
         laboratory.setActive(false);
         laboratoryRepository.save(laboratory);
@@ -126,7 +129,7 @@ public class LaboratoryService {
         log.info("Removendo permanentemente laboratório: {}", id);
 
         if (!laboratoryRepository.existsById(id)) {
-            throw new RuntimeException("Laboratório não encontrado com id: " + id);
+            throw new ResourceNotFoundException("Laboratório", "ID", id);
         }
 
         laboratoryRepository.deleteById(id);
@@ -135,7 +138,12 @@ public class LaboratoryService {
     }
 
     private String generateTenantId(String name) {
-        String base = name.toLowerCase()
+
+        String normalized = java.text.Normalizer
+                .normalize(name, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+        String base = normalized.toLowerCase()
                 .replaceAll(" ", "-")
                 .replaceAll("[^a-z0-9-]", "");
 

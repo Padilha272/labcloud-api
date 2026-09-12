@@ -9,6 +9,8 @@ import com.labcloud.labcloud_api.dto.request.AuthRequest;
 import com.labcloud.labcloud_api.dto.request.RegisterRequest;
 import com.labcloud.labcloud_api.dto.response.AuthResponse;
 import com.labcloud.labcloud_api.enums.UserRole;
+import com.labcloud.labcloud_api.exception.DuplicateResourceException;
+import com.labcloud.labcloud_api.exception.ResourceNotFoundException;
 import com.labcloud.labcloud_api.models.Laboratory;
 import com.labcloud.labcloud_api.models.User;
 import com.labcloud.labcloud_api.repositories.LaboratoryRepository;
@@ -22,116 +24,122 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthService {
-    private final UserRepository userRepository;
-    private final LaboratoryRepository laboratoryRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+        private final UserRepository userRepository;
+        private final LaboratoryRepository laboratoryRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final JwtService jwtService;
+        private final AuthenticationManager authenticationManager;
 
-    @Transactional
-    public AuthResponse login(AuthRequest request) {
-        log.info("Tentativa de login: {}", request.getEmail());
+        @Transactional
+        public AuthResponse login(AuthRequest request) {
+                log.info("Tentativa de login: {}", request.getEmail());
 
-        // 1. Autenticar
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()));
+                // 1. Autenticar
+                authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(
+                                                request.getEmail(),
+                                                request.getPassword()));
 
-        // 2. Buscar usuário
-        User user = userRepository.findByEmailWithLaboratory(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                // 2. Buscar usuário
+                User user = userRepository.findByEmailWithLaboratory(request.getEmail())
+                                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "email",
+                                                request.getEmail()));
 
-        // 3. Atualizar último login
-        user.updateLastLogin();
-        userRepository.save(user);
+                // 3. Atualizar último login
+                user.updateLastLogin();
+                userRepository.save(user);
 
-        // 4. Gerar token
-        String token = jwtService.generateToken(
-                user.getId(),
-                user.getEmail(),
-                user.getTenantId(),
-                user.getRole().name());
+                // 4. Gerar token
+                String token = jwtService.generateToken(
+                                user.getId(),
+                                user.getEmail(),
+                                user.getTenantId(),
+                                user.getRole().name());
 
-        log.info("Login realizado com sucesso: {}", user.getEmail());
+                log.info("Login realizado com sucesso: {}", user.getEmail());
 
-        // 5. Retornar resposta
-        return AuthResponse.builder()
-                .token(token)
-                .userId(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole().name())
-                .tenantId(user.getTenantId())
-                .laboratoryName(user.getLaboratory() != null ? user.getLaboratory().getName() : null)
-                .build();
-    }
-
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        log.info("Registrando novo laboratório e usuário admin: {}", request.getEmail());
-
-        // 1. Verificar se email já existe
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email já cadastrado: " + request.getEmail());
+                // 5. Retornar resposta
+                return AuthResponse.builder()
+                                .token(token)
+                                .userId(user.getId())
+                                .name(user.getName())
+                                .email(user.getEmail())
+                                .role(user.getRole().name())
+                                .tenantId(user.getTenantId())
+                                .laboratoryName(user.getLaboratory() != null ? user.getLaboratory().getName() : null)
+                                .build();
         }
 
-        // 2. Criar laboratório
-        Laboratory laboratory = Laboratory.builder()
-                .name(request.getLaboratoryName())
-                .tenantId(generateTenantId(request.getLaboratoryName()))
-                .active(true)
-                .build();
+        @Transactional
+        public AuthResponse register(RegisterRequest request) {
+                log.info("Registrando novo laboratório e usuário admin: {}", request.getEmail());
 
-        Laboratory savedLab = laboratoryRepository.save(laboratory);
+                // 1. Verificar se email já existe
+                if (userRepository.existsByEmail(request.getEmail())) {
+                        throw new DuplicateResourceException("Email", "email", request.getEmail());
+                }
 
-        // 3. Criar usuário admin
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(UserRole.ADMIN)
-                .active(true)
-                .laboratory(savedLab)
-                .build();
-        user.updateTenantId(savedLab.getTenantId());
+                // 2. Criar laboratório
+                Laboratory laboratory = Laboratory.builder()
+                                .name(request.getLaboratoryName())
+                                .tenantId(generateTenantId(request.getLaboratoryName()))
+                                .active(true)
+                                .build();
 
-        User savedUser = userRepository.save(user);
+                Laboratory savedLab = laboratoryRepository.save(laboratory);
 
-        // 4. Gerar token
-        String token = jwtService.generateToken(
-                savedUser.getId(),
-                savedUser.getEmail(),
-                savedUser.getTenantId(),
-                savedUser.getRole().name());
+                // 3. Criar usuário admin
+                User user = User.builder()
+                                .name(request.getName())
+                                .email(request.getEmail())
+                                .password(passwordEncoder.encode(request.getPassword()))
+                                .role(UserRole.ADMIN)
+                                .active(true)
+                                .laboratory(savedLab)
+                                .build();
+                user.updateTenantId(savedLab.getTenantId());
 
-        log.info("Registro realizado com sucesso: {} - Lab: {}", savedUser.getEmail(), savedLab.getName());
+                User savedUser = userRepository.save(user);
 
-        // 5. Retornar resposta
-        return AuthResponse.builder()
-                .token(token)
-                .userId(savedUser.getId())
-                .name(savedUser.getName())
-                .email(savedUser.getEmail())
-                .role(savedUser.getRole().name())
-                .tenantId(savedUser.getTenantId())
-                .laboratoryName(savedLab.getName())
-                .build();
-    }
+                // 4. Gerar token
+                String token = jwtService.generateToken(
+                                savedUser.getId(),
+                                savedUser.getEmail(),
+                                savedUser.getTenantId(),
+                                savedUser.getRole().name());
 
-    private String generateTenantId(String name) {
-        String base = name.toLowerCase()
-                .replaceAll(" ", "-")
-                .replaceAll("[^a-z0-9-]", "");
+                log.info("Registro realizado com sucesso: {} - Lab: {}", savedUser.getEmail(), savedLab.getName());
 
-        String tenantId = base;
-        int counter = 1;
-
-        while (laboratoryRepository.existsByTenantId(tenantId)) {
-            tenantId = base + "-" + counter;
-            counter++;
+                // 5. Retornar resposta
+                return AuthResponse.builder()
+                                .token(token)
+                                .userId(savedUser.getId())
+                                .name(savedUser.getName())
+                                .email(savedUser.getEmail())
+                                .role(savedUser.getRole().name())
+                                .tenantId(savedUser.getTenantId())
+                                .laboratoryName(savedLab.getName())
+                                .build();
         }
 
-        return tenantId;
-    }
+        private String generateTenantId(String name) {
+
+                String normalized = java.text.Normalizer
+                                .normalize(name, java.text.Normalizer.Form.NFD)
+                                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+                String base = normalized.toLowerCase()
+                                .replaceAll(" ", "-")
+                                .replaceAll("[^a-z0-9-]", "");
+
+                String tenantId = base;
+                int counter = 1;
+
+                while (laboratoryRepository.existsByTenantId(tenantId)) {
+                        tenantId = base + "-" + counter;
+                        counter++;
+                }
+
+                return tenantId;
+        }
 }

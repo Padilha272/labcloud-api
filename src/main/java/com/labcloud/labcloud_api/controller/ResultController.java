@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.labcloud.labcloud_api.dto.request.ResultRequest;
 import com.labcloud.labcloud_api.dto.response.ResultResponse;
+import com.labcloud.labcloud_api.security.SecurityUtils;
 import com.labcloud.labcloud_api.services.ResultService;
 
 import jakarta.validation.Valid;
@@ -32,12 +33,14 @@ public class ResultController {
 
     private final ResultService resultService;
 
-    private static final String CURRENT_USER_ID = "user-id-temporario";
+    
 
     @PostMapping
     public ResponseEntity<ResultResponse> create(@Valid @RequestBody ResultRequest request) {
         log.info("POST /api/results - Criando resultado: {}", request.getParameter());
-        ResultResponse response = resultService.create(request, CURRENT_USER_ID);
+
+        String userId = SecurityUtils.getCurrentUserId();
+        ResultResponse response = resultService.create(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

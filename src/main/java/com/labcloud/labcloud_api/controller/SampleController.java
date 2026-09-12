@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.labcloud.labcloud_api.dto.request.SampleRequest;
 import com.labcloud.labcloud_api.dto.response.SampleResponse;
+import com.labcloud.labcloud_api.security.SecurityUtils;
 import com.labcloud.labcloud_api.services.SampleService;
 
 import jakarta.validation.Valid;
@@ -32,12 +33,14 @@ public class SampleController {
 
     private final SampleService sampleService;
 
-    private static final String CURRENT_USER_ID = "user-id-temporario";
+    
 
     @PostMapping
     public ResponseEntity<SampleResponse> create(@Valid @RequestBody SampleRequest request) {
         log.info("POST /api/samples - Criando amostra: {}", request.getName());
-        SampleResponse response = sampleService.create(request, CURRENT_USER_ID);
+
+        String userId = SecurityUtils.getCurrentUserId();
+        SampleResponse response = sampleService.create(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.labcloud.labcloud_api.dto.request.SampleRequest;
 import com.labcloud.labcloud_api.dto.response.SampleResponse;
+import com.labcloud.labcloud_api.exception.ResourceNotFoundException;
 import com.labcloud.labcloud_api.mapper.SampleMapper;
 import com.labcloud.labcloud_api.models.Experiment;
 import com.labcloud.labcloud_api.models.Sample;
@@ -36,11 +37,11 @@ public class SampleService {
 
         // Buscar experimento
         Experiment experiment = experimentRepository.findById(request.getExperimentId())
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado: " + request.getExperimentId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "ID", request.getExperimentId()));
 
         // Buscar usuário criador
         User createdBy = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "ID", userId));
 
         // Converter para entidade
         Sample sample = sampleMapper.toEntity(request);
@@ -61,7 +62,7 @@ public class SampleService {
         log.info("Buscando amostra por ID: {}", id);
 
         Sample sample = sampleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Amostra não encontrada com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Amostra", "ID", id));
 
         return sampleMapper.toResponse(sample);
     }
@@ -71,7 +72,7 @@ public class SampleService {
         log.info("Buscando amostra com detalhes por ID: {}", id);
 
         Sample sample = sampleRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new RuntimeException("Amostra não encontrada com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Amostra", "ID", id));
 
         return sampleMapper.toResponse(sample);
     }
@@ -125,14 +126,14 @@ public class SampleService {
 
         // 1. Buscar amostra existente
         Sample sample = sampleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Amostra não encontrada com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Amostra", "ID", id));
 
         // 2. Se experimentId mudou, atualizar
         if (request.getExperimentId() != null &&
                 !sample.getExperiment().getId().equals(request.getExperimentId())) {
             Experiment experiment = experimentRepository.findById(request.getExperimentId())
                     .orElseThrow(
-                            () -> new RuntimeException("Experimento não encontrado: " + request.getExperimentId()));
+                            () -> new ResourceNotFoundException("Experimento", "ID", request.getExperimentId()));
             sample.setExperiment(experiment);
             sample.updateTenantId(experiment.getTenantId());
         }
@@ -153,7 +154,7 @@ public class SampleService {
         log.info("Deletando amostra: {}", id);
 
         if (!sampleRepository.existsById(id)) {
-            throw new RuntimeException("Amostra não encontrada com ID: " + id);
+            throw new ResourceNotFoundException("Amostra", "ID", id);
         }
 
         sampleRepository.deleteById(id);

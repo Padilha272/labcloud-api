@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.labcloud.labcloud_api.dto.request.ResultRequest;
 import com.labcloud.labcloud_api.dto.response.ResultResponse;
+import com.labcloud.labcloud_api.exception.ResourceNotFoundException;
 import com.labcloud.labcloud_api.mapper.ResultMapper;
 import com.labcloud.labcloud_api.models.Result;
 import com.labcloud.labcloud_api.models.Sample;
@@ -35,11 +36,11 @@ public class ResultService {
 
         // 1. Buscar amostra
         Sample sample = sampleRepository.findById(request.getSampleId())
-                .orElseThrow(() -> new RuntimeException("Amostra não encontrada: " + request.getSampleId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Amostra", "ID", request.getSampleId()));
 
         // 2. Buscar usuário criador
         User createdBy = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "ID", userId));
 
         // 3. Converter para entidade
         Result result = resultMapper.toEntity(request);
@@ -60,7 +61,7 @@ public class ResultService {
         log.info("Buscando resultado por ID: {}", id);
 
         Result result = resultRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resultado não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Resultado", "ID", id));
 
         return resultMapper.toResponse(result);
     }
@@ -70,7 +71,7 @@ public class ResultService {
         log.info("Buscando resultado com detalhes por ID: {}", id);
 
         Result result = resultRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new RuntimeException("Resultado não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Resultado", "ID", id));
 
         return resultMapper.toResponse(result);
     }
@@ -142,13 +143,13 @@ public class ResultService {
 
         // 1. Buscar resultado existente
         Result result = resultRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resultado não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Resultado", "ID", id));
 
         // 2. Se sampleId mudou, atualizar
         if (request.getSampleId() != null &&
                 !result.getSample().getId().equals(request.getSampleId())) {
             Sample sample = sampleRepository.findById(request.getSampleId())
-                    .orElseThrow(() -> new RuntimeException("Amostra não encontrada: " + request.getSampleId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Amostra", "ID", request.getSampleId()));
             result.setSample(sample);
             result.updateTenantId((sample.getTenantId()));
         }
@@ -169,7 +170,7 @@ public class ResultService {
         log.info("Deletando resultado: {}", id);
 
         if (!resultRepository.existsById(id)) {
-            throw new RuntimeException("Resultado não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Resultado", "ID", id);
         }
 
         resultRepository.deleteById(id);

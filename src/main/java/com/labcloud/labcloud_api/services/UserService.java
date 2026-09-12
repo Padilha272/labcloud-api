@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.labcloud.labcloud_api.dto.request.UserRequest;
 import com.labcloud.labcloud_api.dto.response.UserResponse;
 import com.labcloud.labcloud_api.enums.UserRole;
+import com.labcloud.labcloud_api.exception.DuplicateResourceException;
+import com.labcloud.labcloud_api.exception.ResourceNotFoundException;
 import com.labcloud.labcloud_api.mapper.UserMapper;
 import com.labcloud.labcloud_api.models.Laboratory;
 import com.labcloud.labcloud_api.models.User;
@@ -35,12 +37,12 @@ public class UserService {
 
         // Verificar se email já existe
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("O email já cadastrado" + request.getEmail());
+            throw new DuplicateResourceException("Usuário", "email", request.getEmail());
         }
 
         // Buscar laboratório
         Laboratory laboratory = laboratoryRepository.findById(request.getLaboratoryId())
-                .orElseThrow(() -> new RuntimeException("Laboratório não encontrado" + request.getLaboratoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Laboratório", "ID", request.getLaboratoryId()));
 
         // Converter para entidade
         User user = userMapper.toEntity(request);
@@ -67,7 +69,7 @@ public class UserService {
         log.info("Buscando pelo ID: {}", id);
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "ID", id));
         return userMapper.toResponse(user);
 
     }
@@ -77,7 +79,7 @@ public class UserService {
         log.info("Buscando por email: {}", email);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrando pelo email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "email", email));
         return userMapper.toResponse(user);
     }
 
@@ -96,7 +98,7 @@ public class UserService {
 
         // Verificar se o laboratório existe
         if (!laboratoryRepository.existsById(laboratoryId)) {
-            throw new RuntimeException("Laboratório não encontrado: " + laboratoryId);
+            throw new ResourceNotFoundException("Laboratório", "ID", laboratoryId);
         }
 
         return userRepository.findByLaboratoryId(laboratoryId).stream()
@@ -119,12 +121,12 @@ public class UserService {
 
         // 1. Buscar usuário existente
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "ID", id));
 
         // 2. Se email mudou, verificar se já existe
         if (!user.getEmail().equals(request.getEmail()) &&
                 userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email já cadastrado: " + request.getEmail());
+            throw new DuplicateResourceException("Email", "email", request.getEmail());
         }
 
         // 3. Se laboratoryId mudou, atualizar
@@ -132,7 +134,7 @@ public class UserService {
                 !user.getLaboratory().getId().equals(request.getLaboratoryId())) {
             Laboratory laboratory = laboratoryRepository.findById(request.getLaboratoryId())
                     .orElseThrow(
-                            () -> new RuntimeException("Laboratório não encontrado: " + request.getLaboratoryId()));
+                            () -> new ResourceNotFoundException("Laboratório", "ID", request.getLaboratoryId()));
             user.setLaboratory(laboratory);
             user.updateTenantId(laboratory.getTenantId());
         }
@@ -158,7 +160,7 @@ public class UserService {
         log.info("Deletando usuário: {}", id);
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "ID", id));
 
         user.setActive(false);
         userRepository.save(user);
@@ -171,7 +173,7 @@ public class UserService {
         log.info("Removendo permanentemente usuário: {}", id);
 
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Usuário não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Usuário", "ID", id);
         }
 
         userRepository.deleteById(id);
@@ -183,7 +185,7 @@ public class UserService {
         log.info("Atualizando último login do usuário: {}", email);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "email", email));
 
         user.updateLastLogin();
         userRepository.save(user);

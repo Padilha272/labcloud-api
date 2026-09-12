@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.labcloud.labcloud_api.dto.request.ExperimentRequest;
 import com.labcloud.labcloud_api.dto.response.ExperimentResponse;
 import com.labcloud.labcloud_api.enums.ExperimentStatus;
+import com.labcloud.labcloud_api.exception.ResourceNotFoundException;
 import com.labcloud.labcloud_api.mapper.ExperimentMapper;
 import com.labcloud.labcloud_api.models.Experiment;
 import com.labcloud.labcloud_api.models.Laboratory;
@@ -36,11 +37,11 @@ public class ExperimentService {
 
         // Buscar laboratório
         Laboratory laboratory = laboratoryRepository.findById(request.getLaboratoryId())
-                .orElseThrow(() -> new RuntimeException("Laboratório não encontrado: " + request.getLaboratoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Laboratório", "ID", request.getLaboratoryId()));
 
         // Buscar usuário criador
         User createdBy = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", "ID", userId));
 
         // Converter para entidade
         Experiment experiment = experimentMapper.toEntity(request);
@@ -66,7 +67,7 @@ public class ExperimentService {
         log.info("Buscando experimento por ID: {}", id);
 
         Experiment experiment = experimentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "ID", id));
 
         return experimentMapper.toResponse(experiment);
     }
@@ -76,7 +77,7 @@ public class ExperimentService {
         log.info("Buscando experimento com detalhes por ID: {}", id);
 
         Experiment experiment = experimentRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "ID", id));
 
         return experimentMapper.toResponse(experiment);
     }
@@ -131,7 +132,7 @@ public class ExperimentService {
 
         // 1. Buscar experimento existente
         Experiment experiment = experimentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "ID", id));
 
         // 2. Se laboratoryId mudou, atualizar
         if (request.getLaboratoryId() != null &&
@@ -164,7 +165,7 @@ public class ExperimentService {
         log.info("Completando experimento: {}", id);
 
         Experiment experiment = experimentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "id", id));
 
         experiment.complete();
         Experiment updated = experimentRepository.save(experiment);
@@ -178,7 +179,7 @@ public class ExperimentService {
         log.info("Cancelando experimento: {}", id);
 
         Experiment experiment = experimentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "ID", id));
 
         experiment.cancel();
         Experiment updated = experimentRepository.save(experiment);
@@ -192,7 +193,7 @@ public class ExperimentService {
         log.info("Ativando experimento: {}", id);
 
         Experiment experiment = experimentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Experimento não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Experimento", "ID", id));
 
         experiment.activate();
         Experiment updated = experimentRepository.save(experiment);
@@ -206,7 +207,7 @@ public class ExperimentService {
         log.info("Deletando experimento: {}", id);
 
         if (!experimentRepository.existsById(id)) {
-            throw new RuntimeException("Experimento não encontrado com ID: " + id);
+            throw new ResourceNotFoundException("Experimento", "ID", id);
         }
 
         experimentRepository.deleteById(id);
